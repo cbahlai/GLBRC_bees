@@ -66,7 +66,6 @@ bee.matrix$Unknown<-NULL
 bee.matrix$Year<-NULL
 bee.matrix$State<-NULL
 bee.matrix$Site.ID<-NULL
-head(bee.matrix)
 
 #compute diversity metrics, append them to overall metrics matrix
 #raw diversity and richness by site
@@ -95,16 +94,27 @@ site.dist<-dist(cbind(site.coords$LON, site.coords$LAT))
 #using best error structure possible for the response variable 
 # (3 stepwise procedures per response variable)
 # reference manual for MuMIn http://cran.r-project.org/web/packages/MuMIn/MuMIn.pdf
-#note forest and grassland percentages dropped from analysis because 
-# both wer at very low percentages in the landscape
+# Bee functional groups with fewer than 90 captures (ie  number of sites)
+# were excluded from model selection experiments
 library(MuMIn)
 library(MASS)
 
 #model total bee abundance first, use negative binomial error structure. 
-abundance.model<-glm.nb(Bee.abundance~as.factor(Year)+State+Treatment+Annual+Perennial+Forest+Urban+Wetland+OpenWater, data=metrics.matrix)
-dredge(abundance.model, extra="R^2")
+abundance.model<-glm.nb(Bee.abundance~as.factor(Year)+Treatment+Annual+Perennial+Forest+Urban+Wetland+OpenWater, data=metrics.matrix)
 summary(model.avg(dredge(abundance.model)))
 #check for spatial autocorrelation in residuals of best model
 pred.dist<-dist(residuals(abundance.model))
 mantel.rtest(site.dist, pred.dist, nrepet =9999)
+summary(abundance.model)
 anova(abundance.model)
+TukeyHSD(aov(abundance.model), "Treatment")
+
+#model pollen deposition, use negative binomial error structure. 
+pollen.model<-glm.nb(pollen.dep~as.factor(Year)+Treatment+Annual+Perennial+Forest+Urban+Wetland+OpenWater, data=metrics.matrix)
+summary(model.avg(dredge(pollen.model)))
+#check for spatial autocorrelation in residuals of best model
+pred.dist<-dist(residuals(pollen.model))
+mantel.rtest(site.dist, pred.dist, nrepet =9999)
+summary(pollen.model)
+anova(pollen.model)
+TukeyHSD(aov(pollen.model), "Treatment")
