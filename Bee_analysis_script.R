@@ -13,7 +13,7 @@
 #predictor variables 
 #
 # multivariate analysis will be used to determine associations
-#between nesting guilds, sociality and envuironmental/lanscape variables
+#between nesting guilds, sociality and environmental/lanscape variables
 ###################################################
 
 
@@ -27,7 +27,7 @@ colnames(bee.specimens)
 
 
 # melt data
-specimen.list<-melt(bee.specimens, id=1:17, na.rm=TRUE)
+specimen.list<-melt(bee.specimens, id=1:16, na.rm=TRUE)
 
 #see how many species we have
 species.list<-dcast(specimen.list, Taxon~Year, length)
@@ -205,7 +205,7 @@ shapevec<-c(15, 16, 18)
 ord.groups<-metaMDS(group.matrix[5:9])
 ord.groups
 ordiplot(ord.groups, disp='sites', type="n", xlim=c(-1.5, 1.5))
-with(metrics.matrix, points(ord.nest, display = "sites", col = colvec[Treatment], pch = shapevec[Treatment], 
+with(metrics.matrix, points(ord.groups, display = "sites", col = colvec[Treatment], pch = shapevec[Treatment], 
                             bg = colvec[Treatment]))
 with(metrics.matrix, legend("topright", legend = levels(Treatment), bty = "n",
                             col = colvec, pch = shapevec[Treatment], pt.bg = colvec))
