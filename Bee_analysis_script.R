@@ -76,6 +76,7 @@ summary(landscape.pca)
 metrics.matrix<-merge(metrics.matrix, nest.matrix, by=c("Year","State", "Site.ID", "Treatment"))
 metrics.matrix<-merge(metrics.matrix, sociality.matrix, by=c("Year","State", "Site.ID", "Treatment"))
 metrics.matrix<-merge(metrics.matrix, landscape.var, by=c("Year","Site.ID"))
+metrics.matrix<-merge(metrics.matrix, site.coords, by=c("Year","Site.ID", "State"))
 
 #cast a cross-tab  by species
 bee.matrix<-dcast(specimen.list, Year+State+Site.ID~Taxon, length)
@@ -88,17 +89,11 @@ bee.matrix$Year<-NULL
 bee.matrix$State<-NULL
 bee.matrix$Site.ID<-NULL
 
-#compute diversity metrics, append them to overall metrics matrix
-#raw diversity and richness by site
-library(vegan)
-metrics.matrix$H<-diversity(bee.matrix)
-metrics.matrix$simp<-diversity(bee.matrix, "simpson")
-metrics.matrix$S<-specnumber(bee.matrix)
 
 
 #now that all the data is together and in the correct form, let's do a scatterplot matrix 
 #to see if there's any obvious relationships
-pairs(metrics.matrix[5:25])
+pairs(metrics.matrix[5:24])
 
 #create a distance matrix so we can check for spatial autocorrelation in resiuduals in models
 #Mantel test for spatial autocorrelation for each data set
@@ -150,13 +145,19 @@ TukeyHSD(aov(apis.model), "Treatment")
 #exclude location years with fewer than  10 bees captured
 metrics.matrix.new<-metrics.matrix[which(metrics.matrix$Bee.abundance>9),] 
 bee.matrix.new<-bee.matrix[which(rowSums(bee.matrix)>9),]
+site.dist.new<-dist(cbind(metrics.matrix.new$LON, metrics.matrix.new$LAT))
 #compute rarefied ricness
 raremax <- min(rowSums(bee.matrix.new))
 metrics.matrix.new$Srare <- rarefy(bee.matrix.new, raremax)
+metrics.matrix.new$H<-diversity(bee.matrix.new)
+metrics.matrix.new$simp<-diversity(bee.matrix.new, "simpson")
 
 #model Shannon's H, use normal error structure. 
 H.model<-glm(H~as.factor(Year)+Treatment+Annual+Perennial+Forest+Urban+Wetland+OpenWater,  na.action=na.fail, data=metrics.matrix.new)
 summary(model.avg(dredge(H.model)))
+#check for spatial autocorrelation in residuals of best model
+pred.dist<-dist(residuals(H.model))
+mantel.rtest(site.dist.new, pred.dist, nrepet =9999)
 summary(H.model)
 anova(H.model)
 TukeyHSD(aov(H.model), "Treatment")
@@ -164,6 +165,9 @@ TukeyHSD(aov(H.model), "Treatment")
 #model Simpson's D, use normal error structure. 
 D.model<-glm(simp~as.factor(Year)+Treatment+Annual+Perennial+Forest+Urban+Wetland+OpenWater,  na.action=na.fail, data=metrics.matrix.new)
 summary(model.avg(dredge(D.model)))
+#check for spatial autocorrelation in residuals of best model
+pred.dist<-dist(residuals(D.model))
+mantel.rtest(site.dist.new, pred.dist, nrepet =9999)
 summary(D.model)
 anova(D.model)
 TukeyHSD(aov(D.model), "Treatment")
@@ -171,6 +175,9 @@ TukeyHSD(aov(D.model), "Treatment")
 #model richness, use normal error structure
 S.model<-glm(Srare~as.factor(Year)+Treatment+Annual+Perennial+Forest+Urban+Wetland+OpenWater,  na.action=na.fail, data=metrics.matrix.new)
 summary(model.avg(dredge(S.model)))
+#check for spatial autocorrelation in residuals of best model
+pred.dist<-dist(residuals(S.model))
+mantel.rtest(site.dist.new, pred.dist, nrepet =9999)
 summary(S.model)
 anova(S.model)
 TukeyHSD(aov(S.model), "Treatment")
@@ -200,6 +207,7 @@ text(ord.bees, display="species", select=which(most_abund==TRUE), cex=0.75, col=
 #set some style parameters
 colvec <- c("brown", "darkgoldenrod1", "chartreuse4")
 shapevec<-c(15, 16, 18)
+
 
 #first by bee groups, after Winfree
 ord.groups<-metaMDS(group.matrix[5:9])
