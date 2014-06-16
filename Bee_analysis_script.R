@@ -77,6 +77,8 @@ metrics.matrix<-merge(metrics.matrix, nest.matrix, by=c("Year","State", "Site.ID
 metrics.matrix<-merge(metrics.matrix, sociality.matrix, by=c("Year","State", "Site.ID", "Treatment"))
 metrics.matrix<-merge(metrics.matrix, landscape.var, by=c("Year","Site.ID"))
 metrics.matrix<-merge(metrics.matrix, site.coords, by=c("Year","Site.ID", "State"))
+#re-order treatment variables so they appear in order of increasing diversity
+metrics.matrix$Treatment<-factor(metrics.matrix$Treatment, levels=c("corn", "switchgrass","prairie"))
 
 #cast a cross-tab  by species
 bee.matrix<-dcast(specimen.list, Year+State+Site.ID~Taxon, length)
@@ -147,7 +149,9 @@ metrics.matrix.new<-metrics.matrix[which(metrics.matrix$Bee.abundance>9),]
 bee.matrix.new<-bee.matrix[which(rowSums(bee.matrix)>9),]
 site.dist.new<-dist(cbind(metrics.matrix.new$LON, metrics.matrix.new$LAT))
 #compute rarefied ricness
+library(vegan)
 raremax <- min(rowSums(bee.matrix.new))
+raremax
 metrics.matrix.new$Srare <- rarefy(bee.matrix.new, raremax)
 metrics.matrix.new$H<-diversity(bee.matrix.new)
 metrics.matrix.new$simp<-diversity(bee.matrix.new, "simpson")
@@ -182,7 +186,15 @@ summary(S.model)
 anova(S.model)
 TukeyHSD(aov(S.model), "Treatment")
 
+library(gplots)
+par(mfrow=c(2, 3), cex.axis=1.1, cex.lab=1.2, font.lab=2, cex.main=2, adj=0)
+plotmeans(Bee.abundance~Treatment, data=metrics.matrix, cex=2,  xlab="", main="A", ylab="  Total bee abundance", n.label=FALSE, barcol="black", pch=16)
 
+plotmeans(pollen.dep~Treatment, data=metrics.matrix, cex=2,  xlab="", main="B", ylab="Pollen depostion, grains/day", n.label=FALSE, barcol="black", pch=16)
+plotmeans(bee.matrix$Apis.mellifera~Treatment, cex=2, data=metrics.matrix, main="C", xlab="", ylab=" Honey bee abundance", n.label=FALSE, barcol="black", pch=16)
+plotmeans(H~Treatment, data=metrics.matrix.new, cex=2, xlab="", main="D", ylab="       Shannon's H", n.label=FALSE, barcol="black", pch=16)
+plotmeans(simp~Treatment, data=metrics.matrix.new, cex=2,  xlab="                  Crop", main="E", ylab="       Simpson's D", n.label=FALSE, barcol="black", pch=16)
+plotmeans(Srare~Treatment, data=metrics.matrix.new, cex=2,   xlab="",main="F", ylab="    Rarefied richness", n.label=FALSE, barcol="black", pch=16)
 
 #################################################################
 #
