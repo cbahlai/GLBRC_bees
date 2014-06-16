@@ -187,15 +187,19 @@ anova(S.model)
 TukeyHSD(aov(S.model), "Treatment")
 
 library(gplots)
-par(mfrow=c(2, 3), cex.axis=1.1, cex.lab=1.2, font.lab=2, cex.main=2, adj=0)
-plotmeans(Bee.abundance~Treatment, data=metrics.matrix, cex=2,  xlab="", main="A", ylab="  Total bee abundance", n.label=FALSE, barcol="black", pch=16)
-
-plotmeans(pollen.dep~Treatment, data=metrics.matrix, cex=2,  xlab="", main="B", ylab="Pollen depostion, grains/day", n.label=FALSE, barcol="black", pch=16)
-plotmeans(bee.matrix$Apis.mellifera~Treatment, cex=2, data=metrics.matrix, main="C", xlab="", ylab=" Honey bee abundance", n.label=FALSE, barcol="black", pch=16)
-plotmeans(H~Treatment, data=metrics.matrix.new, cex=2, xlab="", main="D", ylab="       Shannon's H", n.label=FALSE, barcol="black", pch=16)
-plotmeans(simp~Treatment, data=metrics.matrix.new, cex=2,  xlab="                  Crop", main="E", ylab="       Simpson's D", n.label=FALSE, barcol="black", pch=16)
-plotmeans(Srare~Treatment, data=metrics.matrix.new, cex=2,   xlab="",main="F", ylab="    Rarefied richness", n.label=FALSE, barcol="black", pch=16)
-
+par(mfrow=c(2, 3), cex.axis=1.1, cex.lab=1.2, font.lab=2, cex.main=2)
+plotmeans(Bee.abundance~Treatment, data=metrics.matrix, cex=2,  xlab="", ylab="Total bee abundance", n.label=FALSE, barcol="black", pch=16)
+mtext("A", adj=0, font=2, cex=1.5)
+plotmeans(pollen.dep~Treatment, data=metrics.matrix, cex=2,  xlab="", ylab="Pollen depostion, grains/day", n.label=FALSE, barcol="black", pch=16)
+mtext("B", adj=0, font=2, cex=1.5)
+plotmeans(bee.matrix$Apis.mellifera~Treatment, cex=2, data=metrics.matrix, xlab="", ylab="Honey bee abundance", n.label=FALSE, barcol="black", pch=16)
+mtext("C", adj=0, font=2, cex=1.5)
+plotmeans(H~Treatment, data=metrics.matrix.new, cex=2, xlab="", ylab="Shannon's H", n.label=FALSE, barcol="black", pch=16)
+mtext("D", adj=0, font=2, cex=1.5)
+plotmeans(simp~Treatment, data=metrics.matrix.new, cex=2,  xlab="Crop", ylab="       Simpson's D", n.label=FALSE, barcol="black", pch=16)
+mtext("E", adj=0, font=2, cex=1.5)
+plotmeans(Srare~Treatment, data=metrics.matrix.new, cex=2,   xlab="", ylab="Rarefied richness", n.label=FALSE, barcol="black", pch=16)
+mtext("F", adj=0, font=2, cex=1.5)
 #################################################################
 #
 #Multivariate analysis plotting communities, nesting guilds, sociality
@@ -204,31 +208,33 @@ plotmeans(Srare~Treatment, data=metrics.matrix.new, cex=2,   xlab="",main="F", y
 
 # bee communities
 library(vegan)
+par(mfrow=c(2, 2), cex.axis=1.1, cex.lab=1.2, font.lab=2, cex.main=2, adj=0.5, oma = c(4, 1, 0, 1),mar = c(4, 4, 2, 4))
+#set some style parameters
+colvec <- c("brown", "darkgoldenrod1", "chartreuse4")
+shapevec<-c(15, 17, 18)
 
 bees.no.singletons <- bee.matrix.new[, which(colSums(bee.matrix.new)>1) ]
 
 ord.bees<-metaMDS(bees.no.singletons)
 ord.bees
-most_abund<-colSums(bees.no.singletons)>100
-plot(ord.bees, disp='sites', type="n")
-points(ord.bees, display="species", select=which(most_abund==FALSE), pch=21, cex=1, col="red")
-text(ord.bees, display="species", select=which(most_abund==TRUE), cex=0.75, col="red")
+most_abund<-colSums(bees.no.singletons)>250
+ordiplot(ord.bees, disp='sites', type="n")
+mtext("A", adj=0, font=2, cex=1.5)
+with(metrics.matrix, points(ord.bees, display = "sites", col = colvec[Treatment], pch = shapevec[Treatment], 
+                            bg = colvec[Treatment]))
+text(ord.bees, display="species", select=which(most_abund==TRUE), cex=1, col="red")
 
 #looks like the community doesn't conform to 2-D NMDS very well, but maybe functional groups of bees will work better
 
-#set some style parameters
-colvec <- c("brown", "darkgoldenrod1", "chartreuse4")
-shapevec<-c(15, 16, 18)
 
 
 #first by bee groups, after Winfree
 ord.groups<-metaMDS(group.matrix[5:9])
 ord.groups
 ordiplot(ord.groups, disp='sites', type="n", xlim=c(-1.5, 1.5))
+mtext("B", adj=0, font=2, cex=1.5)
 with(metrics.matrix, points(ord.groups, display = "sites", col = colvec[Treatment], pch = shapevec[Treatment], 
                             bg = colvec[Treatment]))
-with(metrics.matrix, legend("topright", legend = levels(Treatment), bty = "n",
-                            col = colvec, pch = shapevec[Treatment], pt.bg = colvec))
 text(ord.groups, display="species", cex=1, col="red")
 
 #CCA to overlay environmental variables on bee group ordination
@@ -243,11 +249,10 @@ ordfit.group
 
 ord.nest<-metaMDS(metrics.matrix[7:12])
 ord.nest
-ordiplot(ord.nest, disp='sites', type="n")
+ordiplot(ord.nest, disp='sites', type="n", ylab="NMDS2", xlab="NMDS1")
+mtext("C", adj=0, font=2, cex=1.5)
 with(metrics.matrix, points(ord.nest, display = "sites", col = colvec[Treatment], pch = shapevec[Treatment], 
                             bg = colvec[Treatment]))
-with(metrics.matrix, legend("topright", legend = levels(Treatment), bty = "n",
-                      col = colvec, pch = shapevec[Treatment], pt.bg = colvec))
 text(ord.nest, display="species", cex=1, col="red")
 
 #CCA to overlay environmental variables on bee nest ordination
@@ -263,11 +268,10 @@ ordfit.nest
 
 ord.soc<-metaMDS(metrics.matrix[13:16])
 ord.soc
-ordiplot(ord.soc, disp='sites', type="n")
+ordiplot(ord.soc, disp='sites', type="n", xlab="NMDS1", xlim=c(-2, 2))
+mtext("D", adj=0, font=2, cex=1.5)
 with(metrics.matrix, points(ord.nest, display = "sites", col = colvec[Treatment], pch = shapevec[Treatment], 
                             bg = colvec[Treatment]))
-with(metrics.matrix, legend("topright", legend = levels(Treatment), bty = "n",
-                            col = colvec, pch = shapevec[Treatment], pt.bg = colvec))
 text(ord.soc, display="species", cex=1, col="red")
 
 #CCA to overlay environmental variables on bee nest ordination
@@ -276,4 +280,7 @@ ordfit.soc<-envfit(ord.soc~Annual+Perennial+Forest+Urban+Wetland+OpenWater, data
 plot(ordfit.soc, cex=1, col="blue4")
 summary(ordfit.soc)
 ordfit.soc
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("bottom", c("corn", "switchgrass", "prairie"), xpd = TRUE, horiz = TRUE, inset = c(0, 0), bty = "n", pch =shapevec, col = colvec, cex = 1.5)
 
